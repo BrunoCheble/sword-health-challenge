@@ -1,0 +1,43 @@
+# Use root/example as user/password credentials
+version: '3.1'
+
+services:
+
+  db:
+    platform: linux/x86_64
+    container_name: mysql
+    image: sword-health/database
+    build: 
+      context: ./mysql
+    #command: --default-authentication-plugin=mysql_native_password
+    ports: 
+      - '3306:3306'
+    environment:      
+      MYSQL_ROOT_PASSWORD: root
+
+  notifications:
+    platform: linux/arm64
+    image: sword-health/nodejs
+    build: .
+    ports: 
+      - '8080:3333'
+    volumes: 
+      - './sword-notification-challenge:/app'
+    command:
+      - 'yarn dev:server'
+    depends_on:
+      - db
+
+  tasks:
+    platform: linux/arm64
+    image: sword-health/nodejs
+    build: .
+    ports: 
+      - '8081:4444'
+    volumes: 
+      - './sword-tasks-challenge:/app'
+    command:
+      - 'yarn dev:server'
+    depends_on:
+      - db
+  
